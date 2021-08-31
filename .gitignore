@@ -2,5 +2,7 @@
 config.py
 tokens.json
 __pycache__
+
 test.py
 nasa.py
+config_copy.py

@@ -1,9 +1,11 @@
-from requests.api import request
-import config
 import json
+from requests import request
+import config
+import dropbox
+from dropbox.exceptions import AuthError
 import requests
 
-def weather_by_city(city_name):
+def weather_by_city(city_name="Russia, Moscow"):
     weather_url = config.WEATHER_URL
     params = {
         "key": config.WEATHER_API_KEY,
@@ -29,6 +31,7 @@ def weather_by_city(city_name):
                 return False
     return False
 
+
 def get_book(book_to_find="Ложная слепота"):
     params = {"q": book_to_find, "maxResults": 3}
     try: 
@@ -36,7 +39,7 @@ def get_book(book_to_find="Ложная слепота"):
         response.raise_for_status()
         books = response.json()
     except (requests.RequestException, ValueError) as err:
-        print(f"сервер недоступен! Ошибка:{err}")
+        print(f"сервер поиска книг недоступен! Ошибка:{err}")
         return False
     if books['items']:
         for book in books["items"]:
@@ -49,34 +52,95 @@ def get_book(book_to_find="Ложная слепота"):
         return False
 
 
-def dropbox_files():
-    app_key = config.DROPBOX_APP_KEY  # <-- CHANGE HERE
-    app_secret = config.DROPBOX_APP_SECRET  # <-- CHANGE HERE
-    data = {'grant_type': 'refresh_token',
-            'refresh_token': '<REFRESH_TOKEN>'
-            }
-
-    response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
-                              auth=(app_key, app_secret))
-    print(response)
+def dropbox_files(url=config.DROPBOX_DEFAULT_SH_URL):
     
-    # print('1. Go to: ' + authorize_url)
-    # print('2. Click "Allow" (you might have to log in first)')
-    # print('3. Copy the authorization code.')
-    # code = input("Enter the authorization code here: ").strip()
-    # access_token, user_id = flow.finish(code)
-    # client = dropbox.client.DropboxClient(access_token)
+    with open('tokens.json', 'r', encoding='utf-8') as f:
+        tokens = json.load(f)
+        access_token = tokens["access_token"]
+        refresh_token = tokens["refresh_token"]
+    with dropbox.Dropbox(access_token) as dbx:
+        try:
+            print(dbx.users_get_current_account())
+        except AuthError:
+            print("AUTH ERROR")
+            data = {'grant_type': 'refresh_token',
+                    'refresh_token': refresh_token
+                    }
+            response = requests.post('https://api.dropbox.com/oauth2/token', data=data, auth=(config.DROPBOX_APP_KEY, config.DROPBOX_APP_SECRET))
+            print(response.json())
+        # print(dbx.files_list_folder(path=''))
+        token_str = f'Bearer {access_token}'
+        headers = {'Authorization': token_str,
+                   'Content-Type': 'application/json',
+                   }
+
+        data = '{"query": "foo"}'
+
+        # response = requests.post('https://api.dropboxapi.com/2/check/user', headers=headers, data=data)
+        # print(response.json())
+        # token_str = f'Bearer {access_token}'
+        headers = {'Authorization': token_str}
+        data = '{"path": ""}'
+                
+
+        # response = requests.post('https://api.dropboxapi.com/2/file_requests/count', headers=headers, data=data)
+        # print(response)
+        # print(response.json())
+
+        # headers = {'Authorization': token_str,
+        #            'Content-Type': 'application/json',
+        #            }
+
+        # data = {"limit": 10, "path": '/'}
+
+        # response = requests.post('https://api.dropboxapi.com/2/file_requests/list_v2', headers=headers, data=data)
+        # # print(type(response))
+        # print(response.text)
+        # print('='*30)
+        # headers = {'Authorization': token_str,
+        #            'Content-Type': 'application/json',
+        #            }
+
+        # data = '{"limit": 100,"actions": []}'
+
+        # response = requests.post('https://api.dropboxapi.com/2/sharing/list_folders', headers=headers, data=data)
+        # entries = response.json
+        # for entry in entries:
+        #     print(entry["name"])
+        # print(response.text)
+
+
+            # print(dbx.users_get_current_account())
+            # dbx.check_and_refresh_access_token()
+        # print(dbx.check_and_refresh_access_token())
+        # shared_link = dropbox.files.SharedLink(url=url)
+        # name_list = []
+        # for entry in dbx.files_list_folder(path='', shared_link=shared_link).entries:
+        #     name_list.append(entry.name)
+        # print(name_list[:5])
+
+
+        print("%"*100)
+        headers = {'Authorization': token_str,
+                   'Content-Type': 'application/json',
+                   }
+        data ='{"path": ""}'
+        response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
+        entries = response.json()
+        print(entries)
+        for entry in entries['entries']:
+            print(entry['name'])
+       
+
+
+
+def write_read_tokens(do='r'):  
     
-    # metadata = client.metadata('/foldername')  # <-- CHANGE HERE
-    # files = [content['path'].split('/')[-1] for content in metadata['contents']]
-    # print(files)
-
-
-
-        
-
-
-
+    with open(config.DB_TK_JSON, 'r', encoding='utf-8') as f:
+        tokens = json.load(f)
+        access_token = tokens["access_token"]
+        refresh_token = tokens["refresh_token"]    
 
 if __name__ == "__main__":
     # print(weather_by_city("Moscow,Russia"))
+    dropbox_files()

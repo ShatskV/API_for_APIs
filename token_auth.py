@@ -24,16 +24,15 @@ def dropbox_get_token():
         responce = requests.post(token_url, data=params)
         responce.raise_for_status()
     except (requests.RequestException, ValueError) as err:
-        print("сервер авторизации dropbox недоступен! ошибка: {err}")
+        print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
         return False
     tokens = responce.json()
     tokens = {"access_token": tokens["access_token"], 
               "refresh_token": tokens["refresh_token"]
               }
     with open('tokens.json', 'w', encoding='utf-8') as f:
-        json.dump(tokens, f)
+        json.dump(tokens, f, indent=4)
     return True
-
 
 if __name__ == "__main__": 
     dropbox_get_token()
