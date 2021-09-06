@@ -1,14 +1,16 @@
+from flask import current_app
 import json
+import fnmatch
 from requests import request
 import config
 import dropbox
 from dropbox.exceptions import AuthError
 import requests
 
-def weather_by_city(city_name="Russia, Moscow"):
-    weather_url = config.WEATHER_URL
+def weather_by_city(city_name):
+    weather_url = current_app.config['WEATHER_URL']
     params = {
-        "key": config.WEATHER_API_KEY,
+        "key": current_app.config['WEATHER_API_KEY'],
         "q": city_name,
         "format": "json",
         "num_of_days": 1,
@@ -52,7 +54,7 @@ def get_book(book_to_find="Ложная слепота"):
         return False
 
 
-def dropbox_files(url=config.DROPBOX_DEFAULT_SH_URL):
+def dropbox_files(mask='*'):
     
     with open('tokens.json', 'r', encoding='utf-8') as f:
         tokens = json.load(f)
@@ -67,6 +69,9 @@ def dropbox_files(url=config.DROPBOX_DEFAULT_SH_URL):
                     'refresh_token': refresh_token
                     }
             response = requests.post('https://api.dropbox.com/oauth2/token', data=data, auth=(config.DROPBOX_APP_KEY, config.DROPBOX_APP_SECRET))
+            tokens = response.json()
+            access_token = tokens["access_token"]
+            write_read_tokens(access_token, refresh_token)
             print(response.json())
         # print(dbx.files_list_folder(path=''))
         token_str = f'Bearer {access_token}'
@@ -126,21 +131,35 @@ def dropbox_files(url=config.DROPBOX_DEFAULT_SH_URL):
                    }
         data ='{"path": ""}'
         response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
-        entries = response.json()
-        print(entries)
-        for entry in entries['entries']:
-            print(entry['name'])
+        files = response.json()
+        files = files['entries']
+        # print(entries)
+        for file in files:
+            mask = '*'
+            if fnmatch.fnmatch(file['name'], mask):
+                print(file['name'])
        
 
-
-
-def write_read_tokens(do='r'):  
-    
-    with open(config.DB_TK_JSON, 'r', encoding='utf-8') as f:
-        tokens = json.load(f)
-        access_token = tokens["access_token"]
-        refresh_token = tokens["refresh_token"]    
+def write_read_tokens(access_token=None, refresh_token=None):  
+    if (access_token is None ) and refresh_token is  None:
+        method = 'r'
+    else:
+        method = 'w'
+    with open(config.DB_TK_JSON, method, encoding='utf-8') as f:
+        if method == 'r':    
+            tokens = json.load(f)
+            access_token = tokens["access_token"]
+            refresh_token = tokens["refresh_token"]    
+            return access_token, refresh_token
+        else:
+            tokens = {"access_token": access_token, 
+                      "refresh_token": refresh_token
+                      }
+            json.dump(tokens, f, indent=4)
+            return True
+            
+            
 
 if __name__ == "__main__":
-    # print(weather_by_city("Moscow,Russia"))
-    dropbox_files()
+    print(weather_by_city("Moscow,Russia"))
+    # dropbox_files()
