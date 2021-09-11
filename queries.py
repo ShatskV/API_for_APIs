@@ -1,5 +1,7 @@
 from os import access
-from db_model import db, Token
+from db_model import Token, db
+# from server import db
+# from server import db
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 

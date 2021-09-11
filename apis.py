@@ -4,7 +4,8 @@ import json
 import fnmatch
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-from db_model import Token, db
+from db_model import Token
+# from server import db
 from requests import request
 from sqlalchemy.exc import SQLAlchemyError
 import config

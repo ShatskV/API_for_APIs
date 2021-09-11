@@ -1,8 +1,8 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+# from server import db
 
 db = SQLAlchemy()
-
 
 class Token(db.Model):
     __tablename__ = "tokens"

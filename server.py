@@ -1,7 +1,9 @@
+from flask_sqlalchemy import SQLAlchemy
 from config import NASA_URL
-from db_model import db 
+# from db_model import Token, db
 import json
 from distutils.util import strtobool
+from db_model import db
 from logging import error
 from os import close
 from flask import Flask, current_app, request, jsonify
@@ -15,14 +17,12 @@ def create_app():
     api = Api(app)
     db.init_app(app)
 
-
-
     post_args = reqparse.RequestParser()
     post_args.add_argument("auth_type", default="authorization_code", choices=["refresh_token", "authorization_code"], 
                             case_sensitive=False, location="json", help="auth_type is required!")
     post_args.add_argument ("token_code", required=True, location="json", case_sensitive=True,
                             help="token or auth_code is required!")
-
+    print(app.config['SQLALCHEMY_DATABASE_URI'])
     # get_args = reqparse.RequestParser()
     # get_args.add_argument
     # get_args.add_argument
@@ -111,7 +111,5 @@ def create_app():
 
     api.add_resource(Data_Api, "/api")
 
-
-if __name__ == "__main__":
-    app = create_app()
-    # app.run(debug=True)
+    return app
+    
