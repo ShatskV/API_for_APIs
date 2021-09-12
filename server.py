@@ -6,9 +6,11 @@ from distutils.util import strtobool
 from db_model import db
 from logging import error
 from flask import Flask, current_app, request, jsonify
-from apis import weather_by_city, get_book, dropbox_files, delete_db_token
+from apis import weather_by_city, get_book, dropbox_files
+from auth_db import delete_db_token
 from auth_db import dropbox_get_new_tokens
-from queries import delete_tokens_from_base
+# from queries import delete_tokens_from_base
+# from flask_restful i
 from flask_restful import Api, Resource, reqparse
 
 def create_app():
@@ -105,10 +107,9 @@ def create_app():
             return responce, 200
 
         def delete(self):
-            # result, status_code = delete_db_token()
-            delete_tokens_from_base()
-            result = "ok"
-            status_code = 200
+            result, status_code = delete_db_token()
+            # result = "ok"
+            # status_code = 200
             return result, status_code
 
     api.add_resource(Data_Api, "/api")

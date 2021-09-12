@@ -1,11 +1,14 @@
+# from os import access
 from os import access
+
+from requests import exceptions
 import config
 import json
 import requests
 from flask import current_app
 from datetime import datetime, timedelta
-from apis import write_read_write_tokens
-from queries import add_tokens_to_base
+# from apis import write_read_write_tokens
+from queries import add_tokens_to_base, delete_tokens_from_base, get_token_from_base
 
 def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
     if authorization_code:
@@ -35,15 +38,18 @@ def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
         return {"message": "tokens changed!"}, 200
     return {"error": "Ошибка сервера!"}, 500
 
-def get_access_token(refresh_token):
+def renew_access_token(refresh_token):
     data = {'grant_type': 'refresh_token',
                     'refresh_token': refresh_token
                     }
     try:
-        response = requests.post('https://api.dropbox.com/oauth2/token', data=data, auth=(config.DROPBOX_APP_KEY, config.DROPBOX_APP_SECRET))
+        response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
+                                 auth=(current_app.config['DROPBOX_APP_KEY'],
+                                 current_app.config['DROPBOX_APP_SECRET']))
         tokens = response.json()
+        response.raise_for_status()
     except requests.exceptions.HTTPError:
-            return {"error": "auth error", "message": tokens}, 401
+        return {"error": "auth error", "message": tokens}, 401
     except (requests.RequestException, ValueError) as err:
         print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
         return {"error": "server is anavaible!"}, 404
@@ -57,5 +63,85 @@ def get_access_token(refresh_token):
         return {"error": "ошибка записи в БД"}, 500
     return True, 200
 
+def check_access_token():
+    access_token = get_token_from_base('access_token')
+    if not access_token is None:
+        return False
+    if access_token.expired:
+        delete_tokens_from_base("access_token")
+        return False
+    if not check_connection(access_token):
+        return False
+    return access_token
+
+
+def check_connection(access_token):
+    # token_str = f"Bearer {access_token}"
+    headers = {'Authorization': f"Bearer {access_token}",
+                'Content-Type': 'application/json',
+                }
+    data = '{"query": "foo"}'
+    try:
+        response = requests.post('https://api.dropboxapi.com/2/check/user', headers=headers, data=data)
+        result = response.json()
+        response.raise_for_status()
+    except (requests.RequestException, ValueError) as err:
+        print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
+        return False
+    print(f"status_check_code: {response.status_code}")
+    if result.get('error', False):
+        return False
+    else: 
+        return True
+
+def get_new_access_token(refresh_token):
+    data = {'grant_type': 'refresh_token',
+                'refresh_token': refresh_token
+                }
+    try:
+        response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
+                                 auth=(config.DROPBOX_APP_KEY, current_app.config['DROPBOX_APP_SECRET']))
+        tokens = response.json()
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+            return {"error": "auth error", "message": tokens}, 401
+    except (requests.RequestException, ValueError) as err:
+        print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
+        return {"error": "server is anavaible!"}, 404
+    print(f"tokens: {response.status_code}\n{tokens}")
+    refresh_token_wrong = tokens.get('error_description', False)
+    if refresh_token_wrong:
+        return {"error": tokens['error_description'], "url_auth": current_app.config["DROPBOX_AUTH_URL"]}, 401
+    access_token = tokens["access_token"]
+    # expiration_time = datetime.now() + timedelta(seconds=int(tokens['expires_in'])-5)
+    # write_tokens(access_token, tokens['refresh_token'], expiration_time)
+    if not add_tokens_to_base(tokens):
+        return {"error": "error with Database"}, 500
+    print(response.json())
+    return access_token, 200
+
+
+def delete_db_token():
+    access_token = get_token_from_base('access_token')
+    if not access_token:
+        return {'error': "no access token! can't revoke"}, 400
+    headers = {
+    'Authorization': f'Bearer {access_token}',
+        }
+    try:
+        response = requests.post('https://api.dropboxapi.com/2/auth/token/revoke', headers=headers)
+        print(f"revoke token {response.status_code}")
+        tokens = response.json()
+        print(tokens)
+        response.raise_for_status
+    except requests.exceptions.HTTPError:
+            return {"error": "auth error", "message": tokens}, 401
+    except (requests.RequestException, ValueError) as err:
+        print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
+        return {"error": "server is anavaible!"}, 404
+    if delete_tokens_from_base():
+        return {'message': tokens, "warning": "token in base! can't delete"}, 200
+    return {'message': tokens}, 200
+    
 if __name__ == "__main__": 
-    dropbox_get_token("N_TB1DC5eJEAAAAAAAAGX9GgOM0OE3KaBLV6jAuqWus")
+    get_new_access_token("-4a1uyReE5EAAAAAAAAAAWtIAiMv6RWpyeFQP2xr-63hQ7JbIq59Nu8UtQy6XeuP")

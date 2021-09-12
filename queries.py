@@ -35,14 +35,19 @@ def add_tokens_to_base(tokens):
 
 
 def get_token_from_base(type_token):
-    token = token = Token.query.filter_by(type_token=type_token).first()
+    token= Token.query.filter_by(type_token=type_token).first()
     if token is None:
         return False
     return token
 
 
-def delete_tokens_from_base():
-    db.session.query(Token).delete()
+def delete_tokens_from_base(type_token=False):
+    if type_token:
+        token = get_token_from_base(type_token)
+        if not token:
+            db.session.delete(token)
+    else:
+        db.session.query(Token).delete()
     try:
         db.session.commit()
     except SQLAlchemyError as e:

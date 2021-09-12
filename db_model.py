@@ -8,8 +8,8 @@ class Token(db.Model):
     __tablename__ = "tokens"
 
     id = db.Column(db.Integer, primary_key=True)
-    type_token = db.Column(db.String(20), index=True, unique=True, nullable=False)
-    token_value = db.Column(db.String(50), nullable=False, unique=True)
+    type_token = db.Column(db.String(25), index=True, unique=True, nullable=False)
+    token_value = db.Column(db.String(200), nullable=False, unique=True)
     exp_datetime = db.Column(db.DateTime())
 
 
