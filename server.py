@@ -5,10 +5,10 @@ import json
 from distutils.util import strtobool
 from db_model import db
 from logging import error
-from os import close
 from flask import Flask, current_app, request, jsonify
 from apis import weather_by_city, get_book, dropbox_files, delete_db_token
-from auth_db import dropbox_get_token
+from auth_db import dropbox_get_new_tokens
+from queries import delete_tokens_from_base
 from flask_restful import Api, Resource, reqparse
 
 def create_app():
@@ -22,7 +22,7 @@ def create_app():
                             case_sensitive=False, location="json", help="auth_type is required!")
     post_args.add_argument ("token_code", required=True, location="json", case_sensitive=True,
                             help="token or auth_code is required!")
-    print(app.config['SQLALCHEMY_DATABASE_URI'])
+    # print(app.config['SQLALCHEMY_DATABASE_URI'])
     # get_args = reqparse.RequestParser()
     # get_args.add_argument
     # get_args.add_argument
@@ -53,11 +53,11 @@ def create_app():
             args = post_args.parse_args()
             if args['auth_type'] == "authorization_code":
                 print(f"OPOP, {args['auth_type']}")
-                message, status = dropbox_get_token(authorization_code=args['token_code'])
+                message, status = dropbox_get_new_tokens(authorization_code=args['token_code'])
             else: 
                 print("OPOPOP2")
-                # dropbox_get_token(refresh_token=args['token_code'])
-            current_app.config['NASA_URL']='fergop'
+                message, status = dropbox_get_new_tokens(refresh_token=args['token_code'])
+            # current_app.config['NASA_URL']='fergop'
             if status != 200:
                 return message, status
             return {"message": "refresh_token was changed!"}, 200
@@ -105,8 +105,10 @@ def create_app():
             return responce, 200
 
         def delete(self):
-            result, status_code = delete_db_token()
-            open(current_app.config['DB_TK_JSON'], 'w').close
+            # result, status_code = delete_db_token()
+            delete_tokens_from_base()
+            result = "ok"
+            status_code = 200
             return result, status_code
 
     api.add_resource(Data_Api, "/api")
