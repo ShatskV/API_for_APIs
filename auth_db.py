@@ -40,8 +40,9 @@ def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
 
 def renew_access_token(refresh_token):
     data = {'grant_type': 'refresh_token',
-                    'refresh_token': refresh_token
-                    }
+            'refresh_token': refresh_token
+            }
+    print(f'refresh_token:\n{refresh_token}')
     try:
         response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
                                  auth=(current_app.config['DROPBOX_APP_KEY'],
@@ -96,11 +97,12 @@ def check_connection(access_token):
 
 def get_new_access_token(refresh_token):
     data = {'grant_type': 'refresh_token',
-                'refresh_token': refresh_token
-                }
+            'refresh_token': refresh_token
+            }
     try:
         response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
-                                 auth=(config.DROPBOX_APP_KEY, current_app.config['DROPBOX_APP_SECRET']))
+                                 auth=(current_app.config['DROPBOX_APP_KEY'], current_app.config['DROPBOX_APP_SECRET']),
+                                 timeout=6)
         tokens = response.json()
         response.raise_for_status()
     except requests.exceptions.HTTPError:
@@ -143,5 +145,5 @@ def delete_db_token():
         return {'message': tokens, "warning": "token in base! can't delete"}, 200
     return {'message': tokens}, 200
     
-if __name__ == "__main__": 
-    get_new_access_token("-4a1uyReE5EAAAAAAAAAAWtIAiMv6RWpyeFQP2xr-63hQ7JbIq59Nu8UtQy6XeuP")
+# if __name__ == "__main__": 
+#     get_new_access_token("-4a1uyReE5EAAAAAAAAAAWtIAiMv6RWpyeFQP2xr-63hQ7JbIq59Nu8UtQy6XeuP")
