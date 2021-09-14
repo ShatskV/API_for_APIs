@@ -17,6 +17,7 @@ def add_tokens_to_base(tokens):
             db.session.add(access_token)
         else:
             token.token_value = tokens["access_token"]
+            token.exp_datetime = datetime.now() + timedelta(seconds=tokens["expires_in"]-10) 
 
     if tokens.get('refresh_token', False):       
         token = Token.query.filter_by(type_token="refresh_token").first()   

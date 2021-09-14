@@ -77,7 +77,7 @@ def get_book(book_to_find):
 
 
 
-def dropbox_files(mask):
+def dropbox_files(mask, path):
     
     # with open('tokens.json', 'r', encoding='utf-8') as f:
     #     tokens = json.load(f)
@@ -87,13 +87,16 @@ def dropbox_files(mask):
     # with dropbox.Dropbox(access_token) as dbx:
     # access_token = get_token_from_base('access_token')
     access_token = check_access_token()
+    print(f'access_token:{access_token}')
     if not access_token:
         refresh_token = get_token_from_base('refresh_token')
+        print(f"rf_tk: {refresh_token}")
         if not refresh_token:
             return {"error": "No refresh token! please authenticate with code or new token!",
             "url":  current_app.config["DROPBOX_AUTH_URL"]
             }, 401
         else:
+            refresh_token = refresh_token.token_value
             access_token, status = get_new_access_token(refresh_token)
             if status != 200:
                 return access_token, status
@@ -143,27 +146,25 @@ def dropbox_files(mask):
         # print(response.text)
 
 
-            # print(dbx.users_get_current_account())
-            # dbx.check_and_refresh_access_token()
-        # print(dbx.check_and_refresh_access_token())
-        # shared_link = dropbox.files.SharedLink(url=url)
-        # name_list = []
-        # for entry in dbx.files_list_folder(path='', shared_link=shared_link).entries:
-        #     name_list.append(entry.name)
-        # print(name_list[:5])
+           
 
 
     print("--8"*30)
-    headers = {'Authorization': access_token,
+    headers = {'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
                 }
-    data ='{"path": ""}'
+    data = str({"path": str(path)})
+    data = '{"path": "' + path +'"}'
+    print(data)
+    # data = '{"path": ""}'
+    print(data)
+    # data = '{"query": "foo"}'
     try:
         response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
         files = response.json()
         response.raise_for_status()
     except (requests.RequestException, ValueError) as err:
-        print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
+        print(f"сервер авторизации dropbox недоступен! ошибка: {err} {response.status_code}")
         return {"error": "server is anavaible!"}, 404
     files = files.get('entries', False)
     # print(entries)

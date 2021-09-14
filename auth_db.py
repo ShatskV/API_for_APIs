@@ -66,21 +66,29 @@ def renew_access_token(refresh_token):
 
 def check_access_token():
     access_token = get_token_from_base('access_token')
-    if not access_token is None:
+    print(access_token)
+    if not access_token:
+        print('check_access_no_tk')
         return False
     if access_token.expired:
         delete_tokens_from_base("access_token")
+        print('check_access_exp')
+
         return False
-    if not check_connection(access_token):
+    if not check_connection(access_token.token_value):
+        print('check_access_con_error')
+
         return False
-    return access_token
+    return access_token.token_value
 
 
 def check_connection(access_token):
     # token_str = f"Bearer {access_token}"
+    
     headers = {'Authorization': f"Bearer {access_token}",
                 'Content-Type': 'application/json',
                 }
+    print(f"headers:\n {headers}")
     data = '{"query": "foo"}'
     try:
         response = requests.post('https://api.dropboxapi.com/2/check/user', headers=headers, data=data)
@@ -124,12 +132,11 @@ def get_new_access_token(refresh_token):
 
 
 def delete_db_token():
-    access_token = get_token_from_base('access_token')
+    access_token = get_token_from_base('access_token').token_value
     if not access_token:
         return {'error': "no access token! can't revoke"}, 400
-    headers = {
-    'Authorization': f'Bearer {access_token}',
-        }
+    headers = {'Authorization': f'Bearer {access_token}',}
+
     try:
         response = requests.post('https://api.dropboxapi.com/2/auth/token/revoke', headers=headers)
         print(f"revoke token {response.status_code}")
@@ -137,7 +144,7 @@ def delete_db_token():
         print(tokens)
         response.raise_for_status
     except requests.exceptions.HTTPError:
-            return {"error": "auth error", "message": tokens}, 401
+            return {"error": "auth error", "message": response.json()}, 401
     except (requests.RequestException, ValueError) as err:
         print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
         return {"error": "server is anavaible!"}, 404
@@ -147,3 +154,18 @@ def delete_db_token():
     
 # if __name__ == "__main__": 
 #     get_new_access_token("-4a1uyReE5EAAAAAAAAAAWtIAiMv6RWpyeFQP2xr-63hQ7JbIq59Nu8UtQy6XeuP")
+
+def get_error(err):
+    if isinstance(err, ValueError):
+        print(f"ValueError: {err}")
+    if isinstance(err, requests.exceptions.HTTPError):
+        print(f"HTTPError: {err}")
+    if isinstance(err, requests.exceptions.ConnectionError):
+        print(f"ConnectionError error: {err}")
+    if isinstance(err, requests.exceptions.Timeout):
+        print(f"ConnectionError error: {err}")
+    else: 
+        print(f"Somethingelse: {err}")
+
+
+        

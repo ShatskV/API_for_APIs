@@ -26,14 +26,20 @@ def create_app():
     post_args.add_argument ("token_code", required=True, location="json", case_sensitive=True,
                             help="token or auth_code is required!")
     # print(app.config['SQLALCHEMY_DATABASE_URI'])
-    # get_args = reqparse.RequestParser()
-    # get_args.add_argument
-    # get_args.add_argument
-    # get_args.add_argument
-    # get_args.add_argument
-    # get_args.add_argument
-    # get_args.add_argument
-    # get_args.add_argument
+    help_arg= "wrong argument value!"
+    arg_choice_bool = ["y", "yes", "t", "true", "on", "1", "n", "no", "f", "false", "off", "0"]
+
+    get_args = reqparse.RequestParser()
+    get_args.add_argument("weather", default="true", case_sensitive=False, help=help_arg,
+                          choices=arg_choice_bool)
+    get_args.add_argument("dropbox_files", default="true", case_sensitive=False, help=help_arg,
+                          choices=arg_choice_bool)
+    get_args.add_argument("book_find", default="true", case_sensitive=False, help=help_arg,
+                          choices=arg_choice_bool)
+    get_args.add_argument("book", default=app.config['DEFAULT_BOOK'])
+    get_args.add_argument("city", default=app.config['WEATHER_DEFAULT_CITY'])
+    get_args.add_argument("mask", default='*')
+    get_args.add_argument("path", default='')
 
 
 
@@ -66,20 +72,24 @@ def create_app():
             return {"message": "refresh_token was changed!"}, 200
 
         def get(self):
+            args = get_args.parse_args()
+
             # json_data = request.get_json()
             ## получаем данные погоды
             # print(request)
-            args_data = request.args
-            check, args_data = check_args(args_data) 
-            if not check:
-                return {"error": "wrong arguments!"}, 400
-            weather_on = args_data.get('weather', True)
-            book_on = args_data.get('book_find', True) 
-            dropbox_on = args_data.get('drobpox_files', True)
-            
+            # args_data = request.args
+            # check, args_data = check_args(args_data) 
+            # if not check:
+            #     return {"error": "wrong arguments!"}, 400
+            # weather_on = args_data.get('weather', True)
+            # book_on = args_data.get('book_find', True) 
+            # dropbox_on = args_data.get('drobpox_files', True)
+            weather_on = strtobool(args['weather'])
+            book_on = strtobool(args['book_find'])
+            dropbox_on = strtobool(args['dropbox_files'])
             
             if weather_on:
-                city = args_data.get('city', app.config["WEATHER_DEFAULT_CITY"])
+                city = args['city']
                 weather, status_code_weather = weather_by_city(city)
                 responce = {"weather": {"status_code": status_code_weather,
                                         "data": weather 
@@ -91,15 +101,16 @@ def create_app():
                 responce = {}
             ##поиск по книгам
             if book_on:
-                book = args_data.get('book', app.config['DEFAULT_BOOK'])
+                book = args['book']
                 books_list, status_code_book = get_book(book)
                 responce['book_find'] = {"data": books_list, 
                                     "status_code": status_code_book
                                     }   
             ## поиск по файлам
             if dropbox_on:
-                mask = args_data.get("mask", "*")   
-                files_list, status_code_db = dropbox_files(mask)
+                mask = args["mask"]
+                path = args["path"] 
+                files_list, status_code_db = dropbox_files(mask, path)
                 responce['dropbox_files'] = {"data": files_list,
                                             "status_code": status_code_db
                                             }
