@@ -6,3 +6,6 @@ __pycache__
 test.py
 nasa.py
 config_copy.py
+token_auth.py
+tokens.db
+debug.log

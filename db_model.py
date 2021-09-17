@@ -12,7 +12,6 @@ class Token(db.Model):
     token_value = db.Column(db.String(200), nullable=False, unique=True)
     exp_datetime = db.Column(db.DateTime())
 
-
     @property
     def expired(self):
         if self.exp_datetime is None:

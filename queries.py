@@ -1,10 +1,8 @@
-from os import access
 from db_model import Token, db
-# from server import db
-# from server import db
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
-
+from flask import current_app
+# from server import logger
 
 def add_tokens_to_base(tokens):
     if tokens.get('access_token', False):
@@ -23,20 +21,23 @@ def add_tokens_to_base(tokens):
         token = Token.query.filter_by(type_token="refresh_token").first()   
         if token is None:
             refresh_token = Token(type_token="refresh_token", 
-                                  token_value=tokens["refresh_token"])
+                                  token_value=tokens["refresh_token"]
+                                  )
             db.session.add(refresh_token)
         else:
             token.token_value = tokens["refresh_token"]
     
     try:
         db.session.commit()
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
+        # logger.exception("Exc SQLAlchemy!")
         return False
     return True
 
 
 def get_token_from_base(type_token):
-    token= Token.query.filter_by(type_token=type_token).first()
+    current_app.logger.debug("get data from base!")
+    token = Token.query.filter_by(type_token=type_token).first()
     if token is None:
         return False
     return token
@@ -45,12 +46,13 @@ def get_token_from_base(type_token):
 def delete_tokens_from_base(type_token=False):
     if type_token:
         token = get_token_from_base(type_token)
-        if not token:
+        if not token is None:
             db.session.delete(token)
     else:
         db.session.query(Token).delete()
     try:
         db.session.commit()
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
+        # logger.exception("Exc SQLAlchemy!")
         return False
     return True
