@@ -1,14 +1,7 @@
 from queries import get_token_from_base
 from auth_db import  check_access_token, get_new_access_token, renew_access_token
 from flask import current_app
-import json
 import fnmatch
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, time, timedelta
-from db_model import Token
-from requests import request, status_codes
-from sqlalchemy.exc import SQLAlchemyError
-import config
 import requests
 
 
@@ -37,13 +30,20 @@ def weather_by_city(city_name, timeout):
 
 def get_book(book_to_find, timeout):
     params = {"q": book_to_find, "maxResults": 3}
-    try: 
-        response = requests.get(current_app.config["GOOGLE_BOOKS_API"], params=params)
-        response.raise_for_status()
-        books = response.json()
-    except (requests.RequestException, ValueError) as err:
-        print(f"сервер поиска книг недоступен! Ошибка:{err}")
-        return {"error": err}, 404
+    books, status_code = requests_data(current_app.config["GOOGLE_BOOKS_API"], 
+                                       params=params, timeout=timeout, method='get'
+                                       )
+    if status_code != 200:
+        return books, status_code
+
+    # try: 
+    #     response = requests.get(current_app.config["GOOGLE_BOOKS_API"], params=params)
+    #     response.raise_for_status()
+    #     books = response.json()
+    # except (requests.RequestException, ValueError) as err:
+    #     print(f"сервер поиска книг недоступен! Ошибка:{err}")
+    #     return {"error": err}, 404
+    
     
     if books.get("items", False):
         return books['items'], 200
@@ -57,7 +57,6 @@ def dropbox_files(mask, path, timeout):
 
     if not access_token:
         refresh_token = get_token_from_base('refresh_token')
-        print(f"rf_tk: {refresh_token}")
         if not refresh_token:
             return {"error": "No refresh token! please authenticate with code or new token!",
             "url":  current_app.config["DROPBOX_AUTH_URL"]
@@ -68,22 +67,21 @@ def dropbox_files(mask, path, timeout):
             if status != 200:
                 return access_token, status
 
-    print("--8"*30)
     headers = {'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
                 }
-    # data = str({"path": str(path)})
     data = '{"path": "' + path +'"}'
-    print(data)
-    # data = '{"path": ""}'
-    # data = '{"query": "foo"}'
-    try:
-        response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
-        files = response.json()
-        response.raise_for_status()
-    except (requests.RequestException, ValueError) as err:
-        print(f"сервер авторизации dropbox недоступен! ошибка: {err} {response.status_code}")
-        return {"error": "server is anavaible!"}, 404
+    
+    files, status_code = requests_data(current_app.config["DROPBOX_FILES_URL"], headers=headers, data=data, timeout=timeout)
+    if status_code != 200:
+        return files, status_code
+    # try:
+    #     response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
+    #     files = response.json()
+    #     response.raise_for_status()
+    # except (requests.RequestException, ValueError) as err:
+    #     print(f"сервер авторизации dropbox недоступен! ошибка: {err} {response.status_code}")
+    #     return {"error": "server is anavaible!"}, 404
     files = files.get('entries', False)
     # print(entries)
     list_files = []
@@ -97,15 +95,14 @@ def dropbox_files(mask, path, timeout):
 
 
 
-def requests_data(url, params=None, headers=None, data=None,  auth=None, method='post', 
-                  timeout=5):
+def requests_data(url, timeout, params=None, headers=None, data=None,  auth=None, method='post'):
     if method == 'post': 
         req_func = requests.post
     else:
         req_func = requests.get
     try: 
         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
-                  timeout=timeout)
+                            timeout=5)
         result = responce.json()
         responce.raise_for_status()
     except ValueError as errv:
