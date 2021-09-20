@@ -43,7 +43,6 @@ def create_app():
     get_args.add_argument("timeout_d", default=app.config['TIMEOUT_API'])
 
 
-
     class Data_api(Resource):
         # def post(self):
         #     args = post_args.parse_args()

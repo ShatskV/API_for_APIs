@@ -1,6 +1,8 @@
+from datetime import time
 from queries import get_token_from_base
 from auth_db import  check_access_token, get_new_access_token, renew_access_token
 from flask import current_app
+from utils import requests_data
 import fnmatch
 import requests
 
@@ -63,7 +65,7 @@ def dropbox_files(mask, path, timeout):
             }, 401
         else:
             refresh_token = refresh_token.token_value
-            access_token, status = get_new_access_token(refresh_token)
+            access_token, status = renew_access_token(refresh_token)
             if status != 200:
                 return access_token, status
 
@@ -95,32 +97,33 @@ def dropbox_files(mask, path, timeout):
 
 
 
-def requests_data(url, timeout, params=None, headers=None, data=None,  auth=None, method='post'):
-    if method == 'post': 
-        req_func = requests.post
-    else:
-        req_func = requests.get
-    try: 
-        responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
-                            timeout=5)
-        result = responce.json()
-        responce.raise_for_status()
-    except ValueError as errv:
-        current_app.logger.exception("Exc ValueError!")
-        return {"error": "value error!", "error_message": errv}, 500
-    except requests.exceptions.HTTPError as errh:
-        current_app.logger.exception("Exc HTTPError!")
-        return {"error": "Http Error!", "error_message": errh}, responce.status_code
-    except requests.exceptions.Timeout as errt:
-        current_app.logger.exception("Exc Timeout!")
-        return {"error": "Timeout Error!", "error_message": errt}, 408
-    except requests.exceptions.ConnectionError as errc:
-        current_app.logger.exception("Exc ConnectionError!")
-        return {"error": "Error Connecting:!", "error_message": errc}, 404
-    except requests.exceptions.RequestException as err:
-        current_app.logger.exception("Other requests.exception!")
-        return {"error": "OOps: Something Else!", "error_message": err}, responce.status_code
-    return result, 200
+# def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=None, method='post'):
+#     if method == 'post': 
+#         req_func = requests.post
+#     else:
+#         req_func = requests.get
+#     try: 
+#         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
+#                             timeout=timeout)
+#         result = responce.json()
+#         responce.raise_for_status()
+#     except ValueError as errv:
+#         current_app.logger.exception("Exc ValueError!")
+#         return {"error": "value error!", "error_message": errv}, 500
+#     except requests.exceptions.HTTPError as errh:
+#         current_app.logger.error(result)
+#         current_app.logger.exception("Exc HTTPError!")
+#         return {"error": "Http Error!", "error_message": errh}, responce.status_code
+#     except requests.exceptions.Timeout as errt:
+#         current_app.logger.exception("Exc Timeout!")
+#         return {"error": "Timeout Error!", "error_message": errt}, 408
+#     except requests.exceptions.ConnectionError as errc:
+#         current_app.logger.exception("Exc ConnectionError!")
+#         return {"error": "Error Connecting:!", "error_message": errc}, 404
+#     except requests.exceptions.RequestException as err:
+#         current_app.logger.exception("Other requests.exception!")
+#         return {"error": "OOps: Something Else!", "error_message": err}, responce.status_code
+#     return result, 200
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ def dropbox_get_token():
         "client_secret": app_secret
     }
     try:
-        responce = requests.post(token_url, data=params)
+        responce = requests.post(token_url, data=params, headers=None)
         tokens = responce.json()
         responce.raise_for_status()
     except (requests.RequestException, ValueError) as err:

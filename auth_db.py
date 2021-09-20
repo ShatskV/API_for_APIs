@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from flask import current_app
-from apis import requests_data
+from utils import requests_data
 from queries import add_tokens_to_base, delete_tokens_from_base, get_token_from_base
 import requests
 
@@ -46,6 +46,9 @@ def renew_access_token(refresh_token):
     data = {'grant_type': 'refresh_token',
             'refresh_token': refresh_token
             }
+    print(app_key)
+    print(app_secret)
+    print(data)
     tokens, status_code = requests_data(token_url, data=data, auth=(app_key, app_secret))
 
     # try:
@@ -95,7 +98,7 @@ def check_access_token():
 
 def check_connection(access_token):
     # token_str = f"Bearer {access_token}"
-    check_url = current_app.config["DROPBOX_CHECK_URL"]
+    check_url = current_app.config['DROPBOX_CHECK_URL']
     headers = {'Authorization': f"Bearer {access_token}",
                 'Content-Type': 'application/json',
                 }
@@ -151,9 +154,10 @@ def delete_db_token():
     if access_token.expired:
         return {"error": "access token expired!"}, 400
     token_url = current_app.config['DROPBOX_TOKEN_URL']
-    
+    # print(token_url+'/revoke')
     headers = {'Authorization': f'Bearer {access_token.token_value}',}
-    tokens, status_code = requests_data(token_url+'\\revoke', headers=headers)
+    print(headers)
+    tokens, status_code = requests_data(token_url+'/revoke', headers=headers)
     
     # try:
     #     response = requests.post('https://api.dropboxapi.com/2/auth/token/revoke', headers=headers)

@@ -30,13 +30,12 @@ def add_tokens_to_base(tokens):
     try:
         db.session.commit()
     except SQLAlchemyError:
-        # logger.exception("Exc SQLAlchemy!")
+        current_app.logger.exception("Exc SQLAlchemy!")
         return False
     return True
 
 
 def get_token_from_base(type_token):
-    current_app.logger.debug("get data from base!")
     token = Token.query.filter_by(type_token=type_token).first()
     if token is None:
         return False
@@ -53,6 +52,6 @@ def delete_tokens_from_base(type_token=False):
     try:
         db.session.commit()
     except SQLAlchemyError:
-        # logger.exception("Exc SQLAlchemy!")
+        current_app.logger.exception("Exc SQLAlchemy!")
         return False
     return True
