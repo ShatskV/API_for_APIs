@@ -44,15 +44,6 @@ def create_app():
 
 
     class Data_api(Resource):
-        # def post(self):
-        #     args = post_args.parse_args()
-        #     if args['auth_type'] == "authorization_code":
-        #         message, status_code = dropbox_get_new_tokens(authorization_code=args['token_code'])
-        #     else: 
-        #         message, status_code = dropbox_get_new_tokens(refresh_token=args['token_code'])
-        #     if status_code != 200:
-        #         return message, status_code
-        #     return {"message": "refresh_token was changed!"}, 200
 
         def get(self):
             args = get_args.parse_args()
@@ -89,10 +80,6 @@ def create_app():
             if not responce:
                 return {"error": "all services not available"}, 404
             return responce, 200
-
-        # def delete(self):
-        #     result, status_code = delete_db_token()
-        #     return result, status_code
     
 
     class Auth_db(Resource):
@@ -119,6 +106,7 @@ def create_app():
 
     api.add_resource(Data_api, "/api")
     api.add_resource(Auth_db, "/api/auth")
+    
 
     return app
     

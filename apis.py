@@ -1,10 +1,8 @@
-from datetime import time
 from queries import get_token_from_base
-from auth_db import  check_access_token, get_new_access_token, renew_access_token
+from auth_db import  check_access_token, renew_access_token
 from flask import current_app
 from utils import requests_data
 import fnmatch
-import requests
 
 
 def weather_by_city(city_name, timeout):
@@ -16,7 +14,6 @@ def weather_by_city(city_name, timeout):
               "lang": "ru"
               }
   
-    # responce = requests.get(weather_url, params=params, timeout=1)
     weather, status_code = requests_data(weather_url, params=params, timeout=timeout, method='get')
     if status_code != 200:
         return weather, status_code  
@@ -38,14 +35,6 @@ def get_book(book_to_find, timeout):
     if status_code != 200:
         return books, status_code
 
-    # try: 
-    #     response = requests.get(current_app.config["GOOGLE_BOOKS_API"], params=params)
-    #     response.raise_for_status()
-    #     books = response.json()
-    # except (requests.RequestException, ValueError) as err:
-    #     print(f"сервер поиска книг недоступен! Ошибка:{err}")
-    #     return {"error": err}, 404
-    
     
     if books.get("items", False):
         return books['items'], 200
@@ -55,7 +44,6 @@ def get_book(book_to_find, timeout):
 
 def dropbox_files(mask, path, timeout):
     access_token = check_access_token()
-    print(f'access_token:{access_token}')
 
     if not access_token:
         refresh_token = get_token_from_base('refresh_token')
@@ -77,15 +65,8 @@ def dropbox_files(mask, path, timeout):
     files, status_code = requests_data(current_app.config["DROPBOX_FILES_URL"], headers=headers, data=data, timeout=timeout)
     if status_code != 200:
         return files, status_code
-    # try:
-    #     response = requests.post('https://api.dropboxapi.com/2/files/list_folder', headers=headers, data=data)
-    #     files = response.json()
-    #     response.raise_for_status()
-    # except (requests.RequestException, ValueError) as err:
-    #     print(f"сервер авторизации dropbox недоступен! ошибка: {err} {response.status_code}")
-    #     return {"error": "server is anavaible!"}, 404
+    
     files = files.get('entries', False)
-    # print(entries)
     list_files = []
     if files:
         for file in files:
@@ -94,38 +75,3 @@ def dropbox_files(mask, path, timeout):
         return list_files, 200
     else:
         return {'error': "server not available"}, 404
-
-
-
-# def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=None, method='post'):
-#     if method == 'post': 
-#         req_func = requests.post
-#     else:
-#         req_func = requests.get
-#     try: 
-#         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
-#                             timeout=timeout)
-#         result = responce.json()
-#         responce.raise_for_status()
-#     except ValueError as errv:
-#         current_app.logger.exception("Exc ValueError!")
-#         return {"error": "value error!", "error_message": errv}, 500
-#     except requests.exceptions.HTTPError as errh:
-#         current_app.logger.error(result)
-#         current_app.logger.exception("Exc HTTPError!")
-#         return {"error": "Http Error!", "error_message": errh}, responce.status_code
-#     except requests.exceptions.Timeout as errt:
-#         current_app.logger.exception("Exc Timeout!")
-#         return {"error": "Timeout Error!", "error_message": errt}, 408
-#     except requests.exceptions.ConnectionError as errc:
-#         current_app.logger.exception("Exc ConnectionError!")
-#         return {"error": "Error Connecting:!", "error_message": errc}, 404
-#     except requests.exceptions.RequestException as err:
-#         current_app.logger.exception("Other requests.exception!")
-#         return {"error": "OOps: Something Else!", "error_message": err}, responce.status_code
-#     return result, 200
-
-
-if __name__ == "__main__":
-    print(weather_by_city("Moscow,Russia"))
-    # dropbox_files()

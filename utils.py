@@ -10,7 +10,6 @@ def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=No
         print(url)
         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
                             timeout=timeout)
-        # print(responce.text)
         result = responce.json()
         responce.raise_for_status()
     except ValueError as errv:

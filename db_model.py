@@ -18,6 +18,6 @@ class Token(db.Model):
         return self.exp_datetime < datetime.now()
         
     def __repr__(self):
-        return '<token name={} id={}>'.format(self.type_token, self.id)
+        return '<token type={} id={}>'.format(self.type_token, self.id)
 
     
