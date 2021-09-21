@@ -149,15 +149,16 @@ def get_new_access_token(refresh_token):
 def delete_db_token():
     access_token = get_token_from_base('access_token')
 
-    if access_token is None:
+    if not access_token:
         return {"error": "no access token! can't revoke"}, 400
+
     if access_token.expired:
         return {"error": "access token expired!"}, 400
-    token_url = current_app.config['DROPBOX_TOKEN_URL']
+    token_url = current_app.config['DROPBOX_TOKEN_REVOKE']
     # print(token_url+'/revoke')
     headers = {'Authorization': f'Bearer {access_token.token_value}',}
     print(headers)
-    tokens, status_code = requests_data(token_url+'/revoke', headers=headers)
+    tokens, status_code = requests_data(token_url, headers=headers)
     
     # try:
     #     response = requests.post('https://api.dropboxapi.com/2/auth/token/revoke', headers=headers)
@@ -166,15 +167,15 @@ def delete_db_token():
     #     print(tokens)
     #     response.raise_for_status
     # except requests.exceptions.HTTPError:
-    #         return {"error": "auth error", "message": response.json()}, 401
+    #         return {"error": "auth error", "message": tokens}, 401
     # except (requests.RequestException, ValueError) as err:
     #     print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
     #     return {"error": "server is anavaible!"}, 404
     if status_code != 200:
         return {"error", "service is anavaible!"}, status_code
-    if delete_tokens_from_base():
+    if not delete_tokens_from_base():
         return {'message': tokens, "warning": "token in base! can't delete"}, 200
-    return {'message': tokens}, 200
+    return {'message': "tokens was revoked!"}, 200
 
 
 # if __name__ == "__main__": 
