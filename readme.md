@@ -47,7 +47,11 @@ API сделан с ипользованием библиотеки flask-restfu
 `{    
     "auth_type": "authorization_code", 
 	"token_code": <код или действительный рефреш токен>
+<<<<<<< HEAD
 }`
+=======
+ }`
+>>>>>>> 7828a21 (final version)
 
 - "auth_type" - может иметь значения "authorization_code" (по умолчанию) или "refresh_token"
 

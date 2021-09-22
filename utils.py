@@ -7,6 +7,10 @@ def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=No
     else:
         req_func = requests.get
     try: 
+<<<<<<< HEAD
+=======
+        print(url)
+>>>>>>> 7828a21 (final version)
         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
                             timeout=timeout)
         result = responce.json()
@@ -17,8 +21,12 @@ def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=No
     except requests.exceptions.HTTPError as errh:
         current_app.logger.error(result)
         current_app.logger.exception("Exc HTTPError!")
+<<<<<<< HEAD
         return {"error": "Http Error!", "error_message": str(errh),
                 "error_api": result}, responce.status_code
+=======
+        return {"error": "Http Error!", "error_message": str(errh)}, responce.status_code
+>>>>>>> 7828a21 (final version)
     except requests.exceptions.ConnectionError as errc:
         current_app.logger.exception("Exc ConnectionError!")
         return {"error": "Error Connecting:!", "error_message": str(errc)}, 404
