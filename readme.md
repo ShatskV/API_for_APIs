@@ -1,4 +1,4 @@
-# API для API'S
+# API для APIs
 
 API для сбора данных с трех API: 
 
