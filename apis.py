@@ -23,7 +23,7 @@ def weather_by_city(city_name, timeout):
             try:
                 return weather['data']['current_condition'][0], 200
             except(IndexError, TypeError) as err:
-                return {"error": "Data error:" + err}, 404
+                return {"error": "Data error", "error_message":  str(err)}, 404
     return {"error": "Data is empty!"}, 404
 
 
@@ -59,7 +59,7 @@ def dropbox_files(mask, path, timeout):
 
     headers = {'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
-                }
+               }
     data = '{"path": "' + path +'"}'
     
     files, status_code = requests_data(current_app.config["DROPBOX_FILES_URL"], headers=headers, data=data, timeout=timeout)
