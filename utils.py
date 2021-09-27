@@ -6,9 +6,7 @@ def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=No
         req_func = requests.post
     else:
         req_func = requests.get
-    print(auth)
     try: 
-        # print(url)
         responce = req_func(url, params=params, headers=headers, data=data,  auth=auth, 
                             timeout=timeout)
         result = responce.json()
