@@ -2,7 +2,6 @@ from db_model import Token, db
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from flask import current_app
-# from server import logger
 
 def add_tokens_to_base(tokens):
     if tokens.get('access_token', False):

@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta
 from flask import current_app
 from utils import requests_data
 from queries import add_tokens_to_base, delete_tokens_from_base, get_token_from_base
-import requests
 
 
 def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
@@ -31,7 +29,7 @@ def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
 
 
 def renew_access_token(refresh_token):
-    app_key = current_app.config['DROPBOX_APP_KEY'],
+    app_key = current_app.config['DROPBOX_APP_KEY']
     app_secret = current_app.config['DROPBOX_APP_SECRET']
     token_url = current_app.config['DROPBOX_TOKEN_URL']
     data = {'grant_type': 'refresh_token',
@@ -52,6 +50,7 @@ def renew_access_token(refresh_token):
     if not add_tokens_to_base(tokens):
         return {"error": "error writing token to database!"}, 500
     return access_token, 200
+
 
 def check_access_token():
     access_token = get_token_from_base('access_token')
@@ -83,30 +82,6 @@ def check_connection(access_token):
         return False
     else: 
         return True
-### лишнее
-def get_new_access_token(refresh_token):
-    data = {'grant_type': 'refresh_token',
-            'refresh_token': refresh_token
-            }
-    try:
-        response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
-                                 auth=(current_app.config['DROPBOX_APP_KEY'], current_app.config['DROPBOX_APP_SECRET']),
-                                 timeout=6)
-        tokens = response.json()
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-            return {"error": "auth error", "message": tokens}, 401
-    except (requests.RequestException, ValueError) as err:
-        # print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
-        return {"error": "server is anavaible!"}, 404
-    # print(f"tokens: {response.status_code}\n{tokens}")
-    refresh_token_wrong = tokens.get('error_description', False)
-    if refresh_token_wrong:
-        return {"error": tokens['error_description'], "url_auth": current_app.config["DROPBOX_AUTH_URL"]}, 401
-    access_token = tokens["access_token"]
-    if not add_tokens_to_base(tokens):
-        return {"error": "error with Database"}, 500
-    return access_token, 200
 
 
 def delete_db_token():
