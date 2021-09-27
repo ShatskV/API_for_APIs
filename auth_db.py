@@ -53,16 +53,13 @@ def renew_access_token(refresh_token):
 
 
 def check_access_token():
-    access_token = get_token_from_base('access_token')
+    access_token = get_token_from_base("access_token")
     if not access_token:
         return False
     if access_token.expired:
         delete_tokens_from_base("access_token")
-
         return False
     if not check_connection(access_token.token_value):
-        print('check_access_con_error')
-
         return False
     return access_token.token_value
 
@@ -80,8 +77,7 @@ def check_connection(access_token):
    
     if result.get('error', False):
         return False
-    else: 
-        return True
+    return True
 
 
 def delete_db_token():
@@ -94,7 +90,7 @@ def delete_db_token():
         return {"error": "access token expired!"}, 400
     token_url = current_app.config['DROPBOX_TOKEN_REVOKE']
     headers = {'Authorization': f'Bearer {access_token.token_value}',}
-    print(headers)
+
     tokens, status_code = requests_data(token_url, headers=headers)
     
     if status_code != 200:

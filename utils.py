@@ -17,7 +17,8 @@ def requests_data(url, timeout=5, params=None, headers=None, data=None,  auth=No
     except requests.exceptions.HTTPError as errh:
         current_app.logger.error(result)
         current_app.logger.exception("Exc HTTPError!")
-        return {"error": "Http Error!", "error_message": str(errh)}, responce.status_code
+        return {"error": "Http Error!", "error_message": str(errh),
+                "error_api": result}, responce.status_code
     except requests.exceptions.ConnectionError as errc:
         current_app.logger.exception("Exc ConnectionError!")
         return {"error": "Error Connecting:!", "error_message": str(errc)}, 404
