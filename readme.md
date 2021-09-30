@@ -31,9 +31,8 @@ API сделан с ипользованием библиотеки flask-restfu
 - mask, path - расширение файлов  и путь для поиска файлов в Дропбокс
 - timeout_w, timeout_b, timeout_d - таймауты для сервисов, по умолчанию - прописаны в файле setting.py
 
-Формат ответа: {"weather": {"status_code": 200, "data": {...} }, 
-		"book_find": {"status_code": 200, "data": {...} },
-		"dropbox_files": {"status_code": 200, "data": {...} }
+Формат ответа:
+{"weather": {"status_code": 200, "data": {...} }, "book_find": {"status_code": 200, "data": {...} }, "dropbox_files": {"status_code": 200, "data": {...} }
 		}
 В случае неудачного запроса для одного из сервисов, возвращается код состояния и саму ошибку
 
