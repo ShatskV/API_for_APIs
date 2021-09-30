@@ -32,10 +32,11 @@ API сделан с ипользованием библиотеки flask-restfu
 - timeout_w, timeout_b, timeout_d - таймауты для сервисов, по умолчанию - прописаны в файле setting.py
 
 Формат ответа: 
-{"weather": {"status_code": 200, "data": {...} }, 
- "book_find": {"status_code": 200, "data": {...} }, 
- "dropbox_files": {"status_code": 200, "data": {...} }
- }
+'{"weather": {"status_code": 200, "data": {...} }, 
+  "book_find": {"status_code": 200, "data": {...} }, 
+  "dropbox_files": {"status_code": 200, "data": {...} }
+  }'
+
 В случае неудачного запроса для одного из сервисов, возвращается код состояния и саму ошибку
 
 ---
@@ -52,7 +53,7 @@ API сделан с ипользованием библиотеки flask-restfu
 Передаются в теле запроса в формате json: 
 `{    
     "auth_type": "authorization_code", 
-	"token_code": <код или действительный рефреш токен>
+    "token_code": <код или действительный рефреш токен>
 }`
 - "auth_type" - может иметь значения "authorization_code" (по умолчанию) или "refresh_token"
 
