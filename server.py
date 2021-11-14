@@ -62,33 +62,23 @@ def create_app():
                     responce["weather"]['city'] = city
             else: 
                 responce = {}
-            ##поиск по книгам
+            ## поиск по книгам
             if book_on:
                 book = args['book']
                 books_list, status_code_book = get_book(book, args['timeout_b'])
-<<<<<<< HEAD
                 responce['book_find'] = {"data": {"book_list": books_list}, 
                                          "status_code": status_code_book
                                          }   
-=======
-                responce['book_find'] = {"data": books_list, 
-                                    "status_code": status_code_book
-                                    }   
->>>>>>> 7828a21 (final version)
+
             ## поиск по файлам
             if dropbox_on:
                 mask = args["mask"]
                 path = args["path"] 
                 files_list, status_code_db = dropbox_files(mask, path, args['timeout_d'])
-<<<<<<< HEAD
                 responce['dropbox_files'] = {"data": {"file_list": files_list},
                                             "status_code": status_code_db
                                              }
-=======
-                responce['dropbox_files'] = {"data": files_list,
-                                            "status_code": status_code_db
-                                            }
->>>>>>> 7828a21 (final version)
+
             if not responce:
                 return {"error": "all services not available"}, 404
             return responce, 200
