@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 from flask import current_app
 from utils import requests_data
 from queries import add_tokens_to_base, delete_tokens_from_base, get_token_from_base
-=======
-from datetime import datetime, timedelta
-from flask import current_app
-from utils import requests_data
-from queries import add_tokens_to_base, delete_tokens_from_base, get_token_from_base
-import requests
->>>>>>> 7828a21 (final version)
 
 
 def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
@@ -37,11 +29,7 @@ def dropbox_get_new_tokens(authorization_code=False, refresh_token=False):
 
 
 def renew_access_token(refresh_token):
-<<<<<<< HEAD
     app_key = current_app.config['DROPBOX_APP_KEY']
-=======
-    app_key = current_app.config['DROPBOX_APP_KEY'],
->>>>>>> 7828a21 (final version)
     app_secret = current_app.config['DROPBOX_APP_SECRET']
     token_url = current_app.config['DROPBOX_TOKEN_URL']
     data = {'grant_type': 'refresh_token',
@@ -63,28 +51,16 @@ def renew_access_token(refresh_token):
         return {"error": "error writing token to database!"}, 500
     return access_token, 200
 
-<<<<<<< HEAD
 
 def check_access_token():
-    access_token = get_token_from_base("access_token")
-=======
-def check_access_token():
     access_token = get_token_from_base('access_token')
->>>>>>> 7828a21 (final version)
+
     if not access_token:
         return False
     if access_token.expired:
         delete_tokens_from_base("access_token")
-<<<<<<< HEAD
         return False
     if not check_connection(access_token.token_value):
-=======
-
-        return False
-    if not check_connection(access_token.token_value):
-        print('check_access_con_error')
-
->>>>>>> 7828a21 (final version)
         return False
     return access_token.token_value
 
@@ -102,36 +78,7 @@ def check_connection(access_token):
    
     if result.get('error', False):
         return False
-<<<<<<< HEAD
     return True
-=======
-    else: 
-        return True
-### лишнее
-def get_new_access_token(refresh_token):
-    data = {'grant_type': 'refresh_token',
-            'refresh_token': refresh_token
-            }
-    try:
-        response = requests.post('https://api.dropbox.com/oauth2/token', data=data, 
-                                 auth=(current_app.config['DROPBOX_APP_KEY'], current_app.config['DROPBOX_APP_SECRET']),
-                                 timeout=6)
-        tokens = response.json()
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-            return {"error": "auth error", "message": tokens}, 401
-    except (requests.RequestException, ValueError) as err:
-        # print(f"сервер авторизации dropbox недоступен! ошибка: {err}")
-        return {"error": "server is anavaible!"}, 404
-    # print(f"tokens: {response.status_code}\n{tokens}")
-    refresh_token_wrong = tokens.get('error_description', False)
-    if refresh_token_wrong:
-        return {"error": tokens['error_description'], "url_auth": current_app.config["DROPBOX_AUTH_URL"]}, 401
-    access_token = tokens["access_token"]
-    if not add_tokens_to_base(tokens):
-        return {"error": "error with Database"}, 500
-    return access_token, 200
->>>>>>> 7828a21 (final version)
 
 
 def delete_db_token():
@@ -144,11 +91,6 @@ def delete_db_token():
         return {"error": "access token expired!"}, 400
     token_url = current_app.config['DROPBOX_TOKEN_REVOKE']
     headers = {'Authorization': f'Bearer {access_token.token_value}',}
-<<<<<<< HEAD
-
-=======
-    print(headers)
->>>>>>> 7828a21 (final version)
     tokens, status_code = requests_data(token_url, headers=headers)
     
     if status_code != 200:
